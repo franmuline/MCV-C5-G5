@@ -1,5 +1,6 @@
 import os
 from torch.utils.data import Dataset
+import torchvision.transforms.functional as TF
 from PIL import Image
 
 
@@ -34,4 +35,5 @@ class MITSplitDataset(Dataset):
         if self.transform:
             image = self.transform(image)
 
+        image = TF.to_tensor(image)
         return image, label
