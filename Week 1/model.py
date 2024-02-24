@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
+import torch.nn.init as init
 
 
 class CustomNet(nn.Module):
@@ -24,6 +24,17 @@ class CustomNet(nn.Module):
         # dropout
         self.dropout = nn.Dropout(p=0.5)
         self.fc2 = nn.Linear(128, 8)  # 8 classes
+
+        # initialize weights
+        init.xavier_normal_(self.conv1.weight)
+        init.xavier_normal_(self.conv2.weight)
+        init.xavier_normal_(self.conv3.weight)
+        init.xavier_normal_(self.conv4.weight)
+        init.xavier_normal_(self.conv5.weight)
+        init.xavier_normal_(self.conv6.weight)
+        init.xavier_normal_(self.conv7.weight)
+        init.xavier_normal_(self.fc1.weight)
+        init.xavier_normal_(self.fc2.weight)
 
     def forward(self, x):
         x = F.relu(self.conv1(x))
