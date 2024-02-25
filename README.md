@@ -12,6 +12,7 @@
 Link to the [Overleaf article](https://www.overleaf.com/read/dxygqtczmvrg#3e2723)
 
 
-(Faltaran links a las presentaciones)
+Presentation week 1: https://docs.google.com/presentation/d/19ssEp37PrmSr4Sil_Iis9pQ4oS4kJtUTtwpkvF2iu-g/edit?usp=sharing
+
 
 
