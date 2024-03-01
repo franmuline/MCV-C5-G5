@@ -72,8 +72,6 @@ if __name__ == "__main__":
         data = yaml.safe_load(file)
 
     dataset_config = data["dataset_config"]
-    create_dataset(dataset_config, "train")
-    create_dataset(dataset_config, "validation")
 
     for d in ["train", "validation"]:
         DatasetCatalog.register("KITTI_" + d, lambda d=d: create_dataset(dataset_config, d))
