@@ -1,6 +1,6 @@
 
 dataset_config:
-  path: "./KITTI-MOTS/"
+  path: "../KITTI-MOTS/"
 
   train:
     labels_path: "instances_txt/"

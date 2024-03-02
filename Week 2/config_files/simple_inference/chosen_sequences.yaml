@@ -1,0 +1,3 @@
+# Chosen sequences for simple inference, they have to be read as a list of strings
+
+sequences: [0, 1, 2]
