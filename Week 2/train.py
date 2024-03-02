@@ -24,11 +24,6 @@ def fine_tune():
     # Put as name the model name and a random name
     wandb.init(project="c5-week2", config=settings.dataset_config, sync_tensorboard=True)
     config = wandb.config
-    for d in ["train", "validation"]:
-        DatasetCatalog.register(settings.dataset_config["name"] + d, lambda d=d: dataset.create_dataset(settings.dataset_config, d))
-        MetadataCatalog.get(settings.dataset_config["name"] + d).set(thing_classes=settings.kitti_classes, stuff_classes=settings.kitti_classes)
-
-    metadata = MetadataCatalog.get(settings.dataset_config["name"] + "validation")
 
     cfg = get_cfg()
     cfg.defrost()
@@ -80,6 +75,9 @@ def random_search(count=10):
             },
         }
     }
+    for d in ["train", "validation"]:
+        DatasetCatalog.register(settings.dataset_config["name"] + d, lambda d=d: dataset.create_dataset(settings.dataset_config, d))
+        MetadataCatalog.get(settings.dataset_config["name"] + d).set(thing_classes=settings.kitti_classes, stuff_classes=settings.kitti_classes)
 
     sweep_id = wandb.sweep(sweep_config, project="c5_week2")
     wandb.agent(sweep_id, function=fine_tune, count=count)
