@@ -21,7 +21,7 @@ from detectron2.data import MetadataCatalog, DatasetCatalog
 def main():
     # Read arguments
     parser = argparse.ArgumentParser(description="C5 - Week 2")
-    parser.add_argument("--action", type=str, default="simple_inference", help="Action to perform, can be 'simple_inference', 'eval_inference', 'fine_tune' or 'random_search'")
+    parser.add_argument("--action", type=str, default="eval_inference", help="Action to perform, can be 'simple_inference', 'eval_inference', 'fine_tune' or 'random_search'")
     parser.add_argument("--model", type=str, default="faster_rcnn", help="Model to use, can be 'mask_rcnn', 'faster_rcnn' or a path to a model file")
     parser.add_argument("--config", type=str, default=None, help="For 'fine_tune' or 'random_search' actions, path to the configuration file to use")
     parser.add_argument("--wandb", type=bool, default=False, help="Enable Weights & Biases logging")
@@ -34,6 +34,17 @@ def main():
     if args.action == "simple_inference":
         # Performs inference on the selected sequences and stores the result images
         simple_inference()
+
+    elif args.action == "eval_inference":
+        # Performs inference with the given model and evaluates the results
+        if args.model in ["mask_rcnn", "faster_rcnn"]:
+            inference(None, True)
+        else:
+            pass  # TODO: Complete when a path to a model file is given
+
+    # elif args.action == "fine_tune":
+
+
 
 
 if __name__ == "__main__":

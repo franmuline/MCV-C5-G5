@@ -1,5 +1,6 @@
 
 dataset_config:
+  name: "KITTI_"
   path: "../KITTI-MOTS/"
 
   train:
