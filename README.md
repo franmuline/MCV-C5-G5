@@ -9,10 +9,19 @@
 | Francisco A. Molina Bakhos | franciscoantonio.molina@autonoma.cat|
 | Andrea Sánchez Sarrablo    | andrea.sanchezsar@autonoma.cat|
 
-Link to the [Overleaf article](https://www.overleaf.com/read/dxygqtczmvrg#3e2723)
 
+## Reports 
 
-Presentation week 1: https://docs.google.com/presentation/d/19ssEp37PrmSr4Sil_Iis9pQ4oS4kJtUTtwpkvF2iu-g/edit?usp=sharing
+### Overleaf Project Report
 
+- [Project Report](https://www.overleaf.com/read/dxygqtczmvrg#3e2723)
 
+### Weekly Project Slides:
 
+- [T1: Introduction to Pytorch - Image classification](https://docs.google.com/presentation/d/19ssEp37PrmSr4Sil_Iis9pQ4oS4kJtUTtwpkvF2iu-g/edit?usp=sharing)
+- T2: Object Detection, recognition and segmentation
+- T3: Image Retrieval
+- T4: Cross-modal Retrieval
+- T5: Diffusion models
+- T6: Multimodal human analysis
+- Final Presentation
