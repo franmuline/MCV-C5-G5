@@ -59,6 +59,8 @@ def create_dataset(config: dict, dataset_type: str, coco_ids: bool = False):
                     bbox = toBbox(mask).tolist()
                     if coco_ids:
                         class_id = COCO_classes[class_id]
+                    else:
+                        class_id = class_id - 1
                     ann.append(
                         {
                             "bbox": bbox,
@@ -71,29 +73,3 @@ def create_dataset(config: dict, dataset_type: str, coco_ids: bool = False):
                         }
                     )
     return annotations
-
-
-if __name__ == "__main__":
-
-    with open("config_files/dataset_config.yaml", "r") as file:
-        data = yaml.safe_load(file)
-
-    dataset_config = data["dataset_config"]
-
-    for d in ["train", "validation"]:
-        DatasetCatalog.register("KITTI_" + d, lambda d=d: create_dataset(dataset_config, d))
-        MetadataCatalog.get("KITTI_" + d).set(thing_classes=["car", "pedestrian"])
-    metadata = MetadataCatalog.get("KITTI_train")
-
-
-    # Print 3 random images
-    dataset_dicts = create_dataset(dataset_config, "validation")
-    for d in dataset_dicts[0:3]:
-        img = cv2.imread(d["file_name"])
-        visualizer = Visualizer(img[:, :, ::-1], metadata=metadata, scale=0.5)
-        out = visualizer.draw_dataset_dict(d)
-        cv2.imshow("Image", out.get_image()[:, :, ::-1])
-
-        # Wait for a key press and then close the window
-        cv2.waitKey(0)
-    cv2.destroyAllWindows()

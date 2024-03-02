@@ -1,3 +1,3 @@
 # Path to the weights of the model (if any)
 
-weights: None
+weights: "./output/fine_tuned_mask_rcnn/model_final.pth"

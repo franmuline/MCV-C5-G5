@@ -24,14 +24,20 @@ def init(action, model):
     coco_classes[0] = "person"
     coco_classes[2] = "car"
 
+    global kitti_classes
+    kitti_classes = ["car", "pedestrian"]
+
+    global weights
+    with open("config_files/eval_inference/weights.yaml", "r") as file:
+        weights = yaml.safe_load(file)
+        weights = weights["weights"]
+        if weights == "None":
+            weights = None
+
     if action == "simple_inference":
         global chosen_sequences
         with open("config_files/simple_inference/chosen_sequences.yaml", "r") as file:
             chosen_sequences = yaml.safe_load(file)
             chosen_sequences = chosen_sequences["sequences"]
-    elif action == "eval_inference":
-        global weights
-        with open("config_files/eval_inference/weights.yaml", "r") as file:
-            weights = yaml.safe_load(file)
-            weights = weights["weights"]
+
 
