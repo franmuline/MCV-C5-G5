@@ -106,3 +106,23 @@ def inference():
         # Reset stdout
         sys.stdout = sys.__stdout__
         file.close()
+
+
+def inference_on_out_of_context():
+    """Perform inference on the out of context dataset."""
+    cfg = get_cfg()
+    cfg.merge_from_file(model_zoo.get_config_file("COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml"))
+    cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5  # set threshold for this model
+    # Find a model from detectron2's model zoo. You can use the https://dl.fbaipublicfiles... url as well
+    cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url("COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml")
+    predictor = DefaultPredictor(cfg)
+    list_of_images = os.listdir("../out_of_context")
+    for img in list_of_images:
+        im = cv2.imread(f"../out_of_context/{img}")
+        outputs = predictor(im)
+        # Make the font size larger
+        v = Visualizer(im[:, :, ::-1], metadata=MetadataCatalog.get("coco_2017_val"), scale=1)
+        out = v.draw_instance_predictions(outputs["instances"].to("cpu"))
+        if not os.path.exists("./out_of_context_results"):
+            os.makedirs("./out_of_context_results")
+        cv2.imwrite(f"./out_of_context_results/{img}", out.get_image()[:, :, ::-1])

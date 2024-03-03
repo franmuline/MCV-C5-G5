@@ -1,15 +1,15 @@
 import argparse
 import settings
 
-from inference import inference, simple_inference
+from inference import inference, simple_inference, inference_on_out_of_context
 from train import random_search
 
 
 def main():
     # Read arguments
     parser = argparse.ArgumentParser(description="C5 - Week 2")
-    parser.add_argument("--action", type=str, default="random_search", help="Action to perform, can be 'simple_inference', 'eval_inference' or 'random_search'")
-    parser.add_argument("--model", type=str, default="faster_rcnn", help="Model to use, can be 'mask_rcnn' or 'faster_rcnn'")
+    parser.add_argument("--action", type=str, default="out_of_context", help="Action to perform, can be 'simple_inference', 'eval_inference', 'random_search' or 'out_of_context'")
+    parser.add_argument("--model", type=str, default="mask_rcnn", help="Model to use, can be 'mask_rcnn' or 'faster_rcnn'")
 
     args = parser.parse_args()
 
@@ -23,7 +23,9 @@ def main():
         inference()
     elif args.action == "random_search":
         # Performs random search with the given configuration
-        random_search()
+        random_search(9)
+    elif args.action == "out_of_context":
+        inference_on_out_of_context()
 
 
 if __name__ == "__main__":
