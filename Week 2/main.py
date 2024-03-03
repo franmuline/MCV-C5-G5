@@ -8,7 +8,7 @@ from train import random_search
 def main():
     # Read arguments
     parser = argparse.ArgumentParser(description="C5 - Week 2")
-    parser.add_argument("--action", type=str, default="random_search", help="Action to perform, can be 'simple_inference', 'eval_inference', 'fine_tune' or 'random_search'")
+    parser.add_argument("--action", type=str, default="random_search", help="Action to perform, can be 'simple_inference', 'eval_inference' or 'random_search'")
     parser.add_argument("--model", type=str, default="faster_rcnn", help="Model to use, can be 'mask_rcnn' or 'faster_rcnn'")
 
     args = parser.parse_args()
