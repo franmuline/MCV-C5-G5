@@ -21,7 +21,7 @@ python main.py --action <action> --model <model>
 
 where:
 ```
-<action> = ["simple_inference", "eval_inference", "random_search"]
+<action> = ["simple_inference", "eval_inference", "random_search", "out_of_context"]
 <model> = ["faster_rcnn", "mask_rcnn"]
 ```
 
@@ -38,6 +38,8 @@ The results of the evaluation will be saved in the `Week 2/output/` folder, in a
 
 Random search: will run a random search to fine-tune the model changing the hyperparameters. 
 It is conducted using wandb, and the hyperparameters are defined inside the function `random_search` in the file `Week 2/train.py`.
+
+Out of context: will run Mask RCNN on the Out of context model (it has to be in the same directory as the whole project).
 
 
 
