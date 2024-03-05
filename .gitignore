@@ -1,4 +1,6 @@
 .idea/
+*output/
+*detectron2-GradCAM/
 
 # Dataset images
 *MIT*
