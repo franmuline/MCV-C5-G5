@@ -1,7 +1,8 @@
 .idea/
 *output/
 *detectron2-GradCAM/
-
+.DS_Store
+__pycache__
 # Dataset images
 *MIT*
 */wandb/
