@@ -2,11 +2,9 @@ import argparse as ap
 import numpy as np
 from datasets import load_dataset
 from feature_extraction import feature_extraction
-from models import ResNet50
+from models import ResNet50, SiameseNet, TripletNet
 from retrieval import retrieval
 from losses import ContrastiveLoss, TripletsLoss
-from networks import EmbeddingNet, SiameseNet, TripletNet
-import torch
 import torch.optim as optim
 
 PATH_TO_DATA = "../"
@@ -69,7 +67,7 @@ def main():
 
         # Set up network
         margin = 2.0
-        embedding_net = EmbeddingNet()
+        embedding_net = ResNet50()
         model_siamese = SiameseNet(embedding_net).cuda()
         criterion = ContrastiveLoss(margin)
         optimizer = optim.Adam(model_siamese.parameters(), lr=1e-3)
@@ -88,7 +86,7 @@ def main():
 
         # Set up network
         margin = 2.0
-        embedding_net = EmbeddingNet()
+        embedding_net = ResNet50()
         model_triplet = TripletNet(embedding_net).cuda()
         criterion = TripletsLoss(margin)
         optimizer = optim.Adam(model_triplet.parameters(), lr=1e-3)
