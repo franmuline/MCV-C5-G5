@@ -13,9 +13,10 @@ PATH_TO_DATA = "../"
 def main():
     parser = ap.ArgumentParser(description="C5 - Week 3")
     parser.add_argument("--action", type=str, default="retrieval",
-                        help="Action to perform, e.g. 'feature_extraction', 'retrieval', 'siamese_network', "
-                             "'triplet_network'")
+                        help="Action to perform, e.g. 'feature_extraction', 'retrieval', 'metric_learning'")
     parser.add_argument("--model", type=str, default="ResNet50", help="Model to use, e.g. 'ResNet50'")
+    parser.add_argument("--metric", type=str, default="siamese", help="Metric learning method to use: 'triplet', 'siamese'",
+                        choices=["triplet", "siamese"])
     parser.add_argument("--dataset", type=str, default="MIT_split", help="Dataset to use, e.g. 'MIT_split' or 'COCO'")
     parser.add_argument("--output_folder", type=str, default="./output", help="Output folder for the results")
     parser.add_argument("--retrieval_method", type=str, default="knn",
@@ -26,6 +27,7 @@ def main():
 
     args = parser.parse_args()
     action = args.action
+    metric = args.metric
     model_name = args.model
     data = args.dataset
     output_folder = args.output_folder
@@ -57,39 +59,28 @@ def main():
             else f"{folder}/{data}_{args.retrieval_method}_retrieval_indices.npy"
         np.save(name, indices)
 
-    elif action == "siamese_network":
+    elif action == "metric_learning":
         if data == "MIT_split":
             dataset = PATH_TO_DATA + "MIT_split"
         else:
             dataset = PATH_TO_DATA + "COCO"
-        train_data = load_dataset(dataset + "/train", 32, False, "siamese")
-        validation_data = load_dataset(dataset + "/test", 32, False, "siamese")
+        train_data = load_dataset(dataset + "/train", 32, False, metric)
+        validation_data = load_dataset(dataset + "/test", 32, False, metric)
 
         # Set up network
         margin = 2.0
         embedding_net = ResNet50()
-        model_siamese = SiameseNet(embedding_net).cuda()
-        criterion = ContrastiveLoss(margin)
-        optimizer = optim.Adam(model_siamese.parameters(), lr=1e-3)
-        n_epochs = 20
-        log_interval = 100
 
-        # Training
+        model = None
+        criterion = None
+        if metric == "triplet":
+            model = TripletNet(embedding_net).cuda()
+            criterion = TripletsLoss(margin)
+        elif metric == "siamese":
+            model = SiameseNet(embedding_net).cuda()
+            criterion = ContrastiveLoss(margin)
 
-    elif action == "triplet_network":
-        if data == "MIT_split":
-            dataset = PATH_TO_DATA + "MIT_split"
-        else:
-            dataset = PATH_TO_DATA + "COCO"
-        train_data = load_dataset(dataset + "/train", 32, False, "triplet")
-        validation_data = load_dataset(dataset + "/test", 32, False, "triplet")
-
-        # Set up network
-        margin = 2.0
-        embedding_net = ResNet50()
-        model_triplet = TripletNet(embedding_net).cuda()
-        criterion = TripletsLoss(margin)
-        optimizer = optim.Adam(model_triplet.parameters(), lr=1e-3)
+        optimizer = optim.Adam(model.parameters(), lr=1e-3)
         n_epochs = 20
         log_interval = 100
 
