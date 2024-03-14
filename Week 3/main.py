@@ -62,8 +62,8 @@ def main():
             dataset = PATH_TO_DATA + "MIT_split"
         else:
             dataset = PATH_TO_DATA + "COCO"
-        train_data = load_dataset(dataset + "/train", 32, False)
-        validation_data = load_dataset(dataset + "/test", 32, False)
+        train_data = load_dataset(dataset + "/train", 32, False, "siamese")
+        validation_data = load_dataset(dataset + "/test", 32, False, "siamese")
 
         # Set up network
         margin = 2.0
@@ -81,8 +81,8 @@ def main():
             dataset = PATH_TO_DATA + "MIT_split"
         else:
             dataset = PATH_TO_DATA + "COCO"
-        train_data = load_dataset(dataset + "/train", 32, False)
-        validation_data = load_dataset(dataset + "/test", 32, False)
+        train_data = load_dataset(dataset + "/train", 32, False, "triplet")
+        validation_data = load_dataset(dataset + "/test", 32, False, "triplet")
 
         # Set up network
         margin = 2.0
