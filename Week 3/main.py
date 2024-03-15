@@ -6,6 +6,8 @@ from models import ResNet50, SiameseNet, TripletNet
 from retrieval import retrieval
 from losses import ContrastiveLoss, TripletsLoss
 import torch.optim as optim
+import torch
+from train import *
 
 PATH_TO_DATA = "../"
 
@@ -64,6 +66,7 @@ def main():
             dataset = PATH_TO_DATA + "MIT_split"
         else:
             dataset = PATH_TO_DATA + "COCO"
+
         train_data = load_dataset(dataset + "/train", 32, False, metric)
         validation_data = load_dataset(dataset + "/test", 32, False, metric)
 
@@ -82,9 +85,23 @@ def main():
 
         optimizer = optim.Adam(model.parameters(), lr=1e-3)
         n_epochs = 20
-        log_interval = 100
+        log_interval = 1
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
         # Training
+        for epoch in range(n_epochs):
+            train_loss, train_acc = train_epoch(model,optimizer,criterion,device,log_interval)
+
+            val_loss, val_acc = train_epoch(model,optimizer,criterion,device,log_interval)
+
+            print(f'Epoch {epoch + 1}/{n_epochs}, Train Loss: {train_loss / len(train_data)}, '
+              f'Train Accuracy: {train_acc}, Val Loss: {val_loss / len(validation_data)}, '
+              f'Val Accuracy: {val_acc}')
+            
+        # Save the model
+        torch.save(model.state_dict(), metric+'_model.pth')
+
+        print('Finished Training')
 
 
 
