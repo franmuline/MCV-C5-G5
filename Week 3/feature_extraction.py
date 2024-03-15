@@ -5,10 +5,12 @@ import numpy as np
 
 def feature_extraction(tag, dataset, model, output_folder):
     """Extract features from a set of images using a pre-trained model.
-    Features and labels will be stored in a .npy file
+    Features and labels will be stored in a .npy file in the format: [features, labels].
+    For each image in the dataset, we have a row of features (e.g. 2048 for ResNet50) and a label.
     """
     features = np.array([])
     labels = np.array([])
+    model.eval()
     for inputs, labels_batch in dataset:
         with torch.no_grad():
             outputs = model(inputs).squeeze().numpy()

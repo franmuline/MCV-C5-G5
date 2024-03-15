@@ -39,7 +39,7 @@ def faiss_knn_retrieval(queries, features, k=5):
     return indices
 
 
-def retrieval(queries, features, method='knn', metric='cosine', k=5):
+def retrieval(queries, features, method='knn', metric='cosine', k=None):
     """Perform k-nearest neighbor retrieval using a specific method and metric.
     Args:
         queries: numpy array of shape (n_queries, n_features)
@@ -56,8 +56,14 @@ def retrieval(queries, features, method='knn', metric='cosine', k=5):
     if k is None:
         k = features.shape[0]
     if method == 'knn':
-        return knn_retrieval(new_queries, new_features, metric, k)
+        indices = knn_retrieval(new_queries, new_features, metric, k)
     elif method == 'faiss':
-        return faiss_knn_retrieval(new_queries, new_features, k)
+        indices = faiss_knn_retrieval(new_queries, new_features, k)
     else:
         raise ValueError(f"Method {method} not available")
+
+    # Create a new array with the labels that correspond to the retrieved indices
+    labels = np.zeros((indices.shape[0], k))
+    for i in range(indices.shape[0]):
+        labels[i, :] = features[indices[i], -1]
+    return indices, labels
