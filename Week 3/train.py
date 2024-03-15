@@ -9,6 +9,8 @@ def train_epoch(model,optimizer,train_data,criterion,device,log_interval:int=100
     total = 0
     losses = []
     for n_batch, (img, lab) in enumerate(train_data):
+
+        images = img
         if not type(img) in (tuple, list):
             images = (img,)
             
@@ -48,7 +50,7 @@ def train_epoch(model,optimizer,train_data,criterion,device,log_interval:int=100
             print(log)
             losses = []
 
-            
+
         _, predicted = outputs.max(1)
         total += labels.size(0)
         correct += predicted.eq(labels).sum().item()
@@ -63,6 +65,8 @@ def val_epoch(model,optimizer,val_data,criterion,device,log_interval:int=100):
     correct = 0
     total = 0
     for n_batch, (img, lab) in enumerate(val_data):
+        
+        images = img
         if not type(img) in (tuple, list):
             images = (img,)
             
