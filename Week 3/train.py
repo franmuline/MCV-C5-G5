@@ -47,6 +47,8 @@ def train_epoch(model,optimizer,train_data,criterion,device,log_interval:int=100
                 100. * n_batch / len(train_data), np.mean(losses))
             print(log)
             losses = []
+
+            
         _, predicted = outputs.max(1)
         total += labels.size(0)
         correct += predicted.eq(labels).sum().item()
@@ -92,6 +94,7 @@ def val_epoch(model,optimizer,val_data,criterion,device,log_interval:int=100):
         _, predicted = torch.max(outputs.data, 1)
         total += labels.size(0)
         correct += predicted.eq(labels).sum().item()
+
     val_accuracy = 100. * correct / total
 
     return val_loss, val_accuracy

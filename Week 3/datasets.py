@@ -49,7 +49,7 @@ class SiameseDataset(ImageFolder):
             return (img1, img2), target
 
     def __len__(self):
-        return [len(self.imgs) if not "test" in self.root else len(self.test_pairs)]
+        return len(self.imgs) if not "test" in self.root else len(self.test_pairs)
 
     def get_negative_pairs(self):
         negative_pairs = []
@@ -118,7 +118,7 @@ class TripletDataset(ImageFolder):
             return (img1, img2, img3), []
 
     def __len__(self):
-        return [len(self.imgs) if not "test" in self.root else len(self.test_triplets)]
+        return len(self.imgs) if not "test" in self.root else len(self.test_triplets)
 
     def get_triplets(self):
         triplets = []
