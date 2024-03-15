@@ -2,11 +2,9 @@ import torch
 import numpy as np
 
 
-def train_epoch(model,optimizer,train_data,criterion,device,log_interval:int=100):
+def train_epoch(model, optimizer, train_data, criterion, device, log_interval: int=100, metrics=[]):
     model.train()
     train_loss = 0.0
-    correct = 0
-    total = 0
     losses = []
     for n_batch, (img, lab) in enumerate(train_data):
 
@@ -14,7 +12,7 @@ def train_epoch(model,optimizer,train_data,criterion,device,log_interval:int=100
         if not type(img) in (tuple, list):
             images = (img,)
             
-        inputs= images.to(device)
+        inputs = tuple(i.cuda() for i in images)
 
         labels = None
         if len(lab) > 0:
@@ -40,23 +38,23 @@ def train_epoch(model,optimizer,train_data,criterion,device,log_interval:int=100
         train_loss += loss.item()
         loss.backward()
         optimizer.step()
+
+        for metric in metrics:
+            metric(outputs, labels, loss_o)
         
         #Aqui en el codigo original, calculan otras metrics
-
         if n_batch % log_interval == 0:
             log = 'Train: [{}/{} ({:.0f}%)]\tMean Loss: {:.6f}'.format(
                 n_batch * len(images[0]), len(train_data.dataset),
                 100. * n_batch / len(train_data), np.mean(losses))
+            for metric in metrics:
+                log += '\t{}: {}'.format(metric.name(), metric.value())
+
             print(log)
             losses = []
 
-
-        _, predicted = outputs.max(1)
-        total += labels.size(0)
-        correct += predicted.eq(labels).sum().item()
-    train_accuracy = 100. * correct / total
     train_loss /= (n_batch + 1)
-    return train_loss, train_accuracy
+    return train_loss
 
 
 def val_epoch(model,optimizer,val_data,criterion,device,log_interval:int=100):
@@ -70,7 +68,7 @@ def val_epoch(model,optimizer,val_data,criterion,device,log_interval:int=100):
         if not type(img) in (tuple, list):
             images = (img,)
             
-        inputs= images.to(device)
+        inputs = tuple(i.cuda() for i in images)
 
         labels = None
         if len(lab) > 0:
@@ -82,8 +80,8 @@ def val_epoch(model,optimizer,val_data,criterion,device,log_interval:int=100):
             outputs = (outputs,)
             
         loss_inputs = outputs
-        if target is not None:
-            target = (target,)
+        if labels is not None:
+            target = (labels,)
             loss_inputs += target
 
         loss_o = criterion(*loss_inputs)
@@ -94,11 +92,5 @@ def val_epoch(model,optimizer,val_data,criterion,device,log_interval:int=100):
         val_loss += loss.item()
 
         # En el codigo original aqui calculan mas metrics
-        
-        _, predicted = torch.max(outputs.data, 1)
-        total += labels.size(0)
-        correct += predicted.eq(labels).sum().item()
 
-    val_accuracy = 100. * correct / total
-
-    return val_loss, val_accuracy
+    return val_loss

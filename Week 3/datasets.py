@@ -22,13 +22,13 @@ class SiameseDataset(ImageFolder):
     def __getitem__(self, index):
 
         if "test" in self.root:
-            img1, img2 = self.test_pairs[index]
+            img1, img2, target = self.test_pairs[index]
             img1 = Image.open(img1)
             img2 = Image.open(img2)
             if self.transform is not None:
                 img1 = self.transform(img1)
                 img2 = self.transform(img2)
-            return (img1, img2), self.test_pairs[index][2]
+            return (img1, img2), target
 
         else:
             img1, label1 = self.imgs[index]
@@ -70,6 +70,8 @@ class SiameseDataset(ImageFolder):
             positive_pairs.append((img1, img2, 1))
 
         return positive_pairs
+
+
 class TripletDataset(ImageFolder):
     def __init__(self, root, transform=None):
         super().__init__(root, transform)

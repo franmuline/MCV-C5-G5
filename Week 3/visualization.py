@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from umap import UMAP
 
-DEFAULT_PATH = 'MIT_split_train_features_and_labels.npy'
+DEFAULT_PATH = './output/TripletNet/MIT_split/validation_features_and_labels.npy'
 label_colors = {
     0: '#ff0000',  # Red
     1: '#00ff00',  # Green
@@ -37,27 +37,35 @@ def generate_color_list(labels: list, available_colors: dict=label_colors):
 def plot_umap_embedding(umap_colors: list,
                         umap_embedding: np.ndarray,
                         nc:int=2,
-                        ):
+                        path:str=DEFAULT_PATH):
     # Visualize the UMAP embedding
     if nc == 2:
         plt.figure(figsize=(10, 8))
-        plt.scatter(umap_embedding[:, 0], umap_embedding[:, 1], c=umap_colors)
+        for label, color in label_colors.items():
+            indices = [i for i, c in enumerate(umap_colors) if c == color]
+            if indices:
+                plt.scatter(umap_embedding[indices, 0], umap_embedding[indices, 1], c=color, label=f'Label {label}')
         plt.title('UMAP Visualization of ResNet Features')
         plt.xlabel('UMAP Component 1')
         plt.ylabel('UMAP Component 2')
+        plt.legend()  # Add legend with labels
     elif nc == 3:
         fig = plt.figure(figsize=(10, 8))
         ax = fig.add_subplot(111, projection='3d')
-
-        # Scatter plot for 3D visualization
-        ax.scatter(umap_embedding[:, 0], umap_embedding[:, 1], umap_embedding[:, 2], c=umap_colors)
-
+        for label, color in label_colors.items():
+            indices = [i for i, c in enumerate(umap_colors) if c == color]
+            if indices:
+                ax.scatter(umap_embedding[indices, 0], umap_embedding[indices, 1], umap_embedding[indices, 2], c=color,
+                           label=f'Label {label}')
         ax.set_title('UMAP 3D Visualization of ResNet Features')
         ax.set_xlabel('UMAP Component 1')
         ax.set_ylabel('UMAP Component 2')
         ax.set_zlabel('UMAP Component 3')
+        ax.legend()  # Add legend with labels
 
     plt.show()
+    plt.savefig(path + '/umap.png')
+
 
 
 def visualize_UMAP(data_path:str=DEFAULT_PATH,
@@ -71,14 +79,8 @@ def visualize_UMAP(data_path:str=DEFAULT_PATH,
     umap_colors = generate_color_list(labels)
 
     #Dimensionality reduction with UMAP
-    umap = UMAP(n_components=n_components, min_dist=min_dist, n_neighbors=n_neighbors, metric='manhattan')  # Reduce to 2 dimensions for visualization
+    umap = UMAP(n_components=n_components, min_dist=min_dist, n_neighbors=n_neighbors, metric=metric)  # Reduce to 2 dimensions for visualization
     umap_embedding = umap.fit_transform(features)
     print(type(umap_embedding))
-    plot_umap_embedding(umap_colors,umap_embedding,n_components)
-    
-# Si n_components es 2 es 2D i si es 3 es 3D
-visualize_UMAP(n_components=3,min_dist=0.1,n_neighbors=50)
-
-
-
-
+    path_to_save = str(Path(data_path).parent)
+    plot_umap_embedding(umap_colors, umap_embedding, n_components, path_to_save)

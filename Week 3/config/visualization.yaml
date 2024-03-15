@@ -1,0 +1,9 @@
+# File to indicate type of visualization, paths to features and labels and other parameters
+
+type: UMAP
+path_to_features: output/TripletNet/MIT_split/train_features_and_labels.npy
+params:
+  n_components: 2 # Number of dimensions to reduce to (2 or 3 for visualization)
+  min_dist: 0.1 # Minimum distance between points
+  n_neighbors: 50
+  metric: manhattan

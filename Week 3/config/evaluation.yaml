@@ -1,0 +1,3 @@
+# File with the paths to the gt and predicted labels
+path_to_features: output/TripletNet/MIT_split/validation_features_and_labels.npy
+path_to_labels: output/TripletNet/MIT_split/knn_cosine/retrieved_labels.npy

@@ -1,0 +1,12 @@
+# File to indicate the retrieval method to use and its parameters
+path_to_train_features: output/TripletNet/MIT_split/train_features_and_labels.npy
+path_to_val_features: output/TripletNet/MIT_split/validation_features_and_labels.npy
+method: knn
+params:
+  k: 5
+  metric: cosine
+
+# Others
+# method: faiss
+# params:
+#   k: 100
