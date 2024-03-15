@@ -92,7 +92,7 @@ def main():
         for epoch in range(n_epochs):
             train_loss, train_acc = train_epoch(model,optimizer,criterion,device,log_interval)
 
-            val_loss, val_acc = train_epoch(model,optimizer,criterion,device,log_interval)
+            val_loss, val_acc = val_epoch(model,optimizer,criterion,device,log_interval)
 
             print(f'Epoch {epoch + 1}/{n_epochs}, Train Loss: {train_loss / len(train_data)}, '
               f'Train Accuracy: {train_acc}, Val Loss: {val_loss / len(validation_data)}, '
