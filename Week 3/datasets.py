@@ -152,11 +152,29 @@ class TripletCOCODataset(Dataset):
             instances = read_json_data(root[:root.rfind("/") + 1] + "instances_val2014.json")
 
         categories = instances["categories"]
-        self.labels_set = [name for _, name, _ in categories]
+        self.labels_set = [category["id"] for category in categories]
 
         anns = read_json_data(root[:root.rfind("/") + 1] + "mcv_image_retrieval_annotations.json")
-        self.label_to_indices = anns["train"] if "train2014" in root else anns["val"]
-        self.img_to_labels = get_image_objects(self.label_to_indices)
+        self.img_to_labels = get_image_objects(anns["train"] if "train2014" in root else anns["val"])
+
+        self.targets = []
+        for img in os.listdir(root):
+            for image in instances["images"]:
+                if image["file_name"] == img:
+                    id = image["id"]
+                    labels = []
+                    if id in self.img_to_labels:
+                        labels = self.img_to_labels[id]
+                    self.targets.append(labels)
+                    break
+                    
+
+        self.label_to_indices = {}
+        for label in self.labels_set:
+            self.label_to_indices[label] = []
+            for i, x in enumerate(self.targets):
+                if label in x:
+                    self.label_to_indices[label].append(i)
 
         self.imgs = []
         images_info = instances["images"]
@@ -214,11 +232,13 @@ class TripletCOCODataset(Dataset):
         for i in range(len(self.imgs)):
             img1, labels1 = self.imgs[i]
 
+            if len(labels1) == 0:
+                continue
+
             img2 = img1
             while img2 == img1:
                 positive_label = np.random.choice(labels1)
                 img2, _ = self.imgs[np.random.choice(self.label_to_indices[positive_label])]
-
 
             negative_label = np.random.choice(list(set(self.labels_set) - set(labels1)))    # different label
             img3, _ = self.imgs[np.random.choice(self.label_to_indices[negative_label])]  

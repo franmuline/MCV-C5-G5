@@ -75,7 +75,7 @@ def get_image_objects(data: dict):
         for image_id in value:
             if image_id not in image_objects:
                 image_objects[image_id] = []
-            image_objects[image_id].append(key)
+            image_objects[image_id].append(int(key))
     return image_objects
 
 ####################
