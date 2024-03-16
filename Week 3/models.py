@@ -1,6 +1,19 @@
-import torch.nn as nn
 from torchvision import models
+import torch.cuda as cuda
+import torch.nn as nn
 
+class EmbeddingLayer(nn.Module):
+    def __init__(self, embed_size):
+        super(EmbeddingLayer, self).__init__()
+        self.linear = nn.Linear(4096, embed_size)
+        self.activation = nn.ReLU()
+        self.device = "cuda" if cuda.is_available() else "cpu"
+
+    def forward(self, x):
+        x = x["pool"].flatten(start_dim=1)
+        x = self.activation(x)
+        x = self.linear(x)
+        return x
 
 class ResNet50(nn.Module):
     def __init__(self):
@@ -12,6 +25,15 @@ class ResNet50(nn.Module):
     def forward(self, x):
         return self.model(x)
 
+
+class FasterRCNN(nn.Module):
+    def __init__(self):
+        super(FasterRCNN, self).__init__()
+        self.model = models.detection.fasterrcnn_resnet50_fpn(weights="COCO_V1").backbone
+        self.model = nn.Sequential(*list(self.model.children())[:], EmbeddingLayer(embed_size=128))
+
+    def forward(self, x):
+        return self.model(x)
 
 # CODE EXTRACTED FROM: https://github.com/adambielski/siamese-triplet/blob/master/networks.py
 class SiameseNet(nn.Module):
