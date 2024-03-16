@@ -78,6 +78,15 @@ class HardNegativePairSelector(PairSelector):
         return positive_pairs, top_negative_pairs
 
 
+def get_pair_selector(selector: str):
+    if selector == "all":
+        return AllPositivePairSelector()
+    elif selector == "hard":
+        return HardNegativePairSelector()
+    else:
+        raise ValueError(f"Pair selector {selector} not supported")
+
+
 class TripletSelector:
     """
     Implementation should return indices of anchors, positive and negative samples
@@ -197,6 +206,18 @@ def SemihardNegativeTripletSelector(margin, cpu=False): return FunctionNegativeT
                                                                                   negative_selection_fn=lambda x: semihard_negative(x, margin),
                                                                                   cpu=cpu)
 
+
+def get_triplet_selector(selector: str, margin: float):
+    if selector == "all":
+        return AllTripletSelector()
+    elif selector == "hard":
+        return HardestNegativeTripletSelector(margin)
+    elif selector == "random":
+        return RandomNegativeTripletSelector(margin)
+    elif selector == "semihard":
+        return SemihardNegativeTripletSelector(margin)
+    else:
+        raise ValueError(f"Triplet selector {selector} not supported")
 
 class BalancedBatchSampler(BatchSampler):
     """

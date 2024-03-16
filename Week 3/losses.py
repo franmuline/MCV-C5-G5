@@ -49,6 +49,9 @@ class OnlineContrastiveLoss(nn.Module):
         self.pair_selector = pair_selector
 
     def forward(self, embeddings, target):
+        # Modification to work with ResNet50: reduce the dimensionality of the embeddings,
+        # the tensor is 4D (batch_size, features, 1, 1)
+        embeddings = embeddings.squeeze()
         positive_pairs, negative_pairs = self.pair_selector.get_pairs(embeddings, target)
         if embeddings.is_cuda:
             positive_pairs = positive_pairs.cuda()
@@ -75,7 +78,9 @@ class OnlineTripletLoss(nn.Module):
         self.triplet_selector = triplet_selector
 
     def forward(self, embeddings, target):
-
+        # Modification to work with ResNet50: reduce the dimensionality of the embeddings,
+        # the tensor is 4D (batch_size, features, 1, 1)
+        embeddings = embeddings.squeeze()
         triplets = self.triplet_selector.get_triplets(embeddings, target)
 
         if embeddings.is_cuda:

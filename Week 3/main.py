@@ -6,7 +6,8 @@ from feature_extraction import perform_feature_extraction
 from models import ResNet50, SiameseNet, TripletNet
 from retrieval import retrieval
 from visualization import visualize_UMAP
-from losses import ContrastiveLoss, TripletsLoss
+from losses import ContrastiveLoss, TripletsLoss, OnlineTripletLoss, OnlineContrastiveLoss
+from utils import get_pair_selector, get_triplet_selector
 import torch.optim as optim
 from train import *
 from metrics import precision_at_k, recall_at_k, average_precision, plot_precision_recall_curve
@@ -17,7 +18,7 @@ PATH_TO_CONFIG = "./config/"
 
 def main():
     parser = ap.ArgumentParser(description="C5 - Week 3")
-    parser.add_argument("--action", type=str, default="evaluation",
+    parser.add_argument("--action", type=str, default="metric_learning",
                         help="Action to perform, e.g. 'feature_extraction', 'retrieval', 'evaluation', 'visualization', 'metric_learning'")
     parser.add_argument("--metric", type=str, default="triplet", help="Metric learning method to use: 'triplet', 'siamese'",
                         choices=["triplet", "siamese"])
@@ -92,36 +93,58 @@ def main():
         plot_precision_recall_curve(precisions.mean(axis=0), recalls.mean(axis=0))
 
     elif action == "metric_learning":
-        if data == "MIT_split":
-            dataset = PATH_TO_DATA + "MIT_split"
-        else:
-            dataset = PATH_TO_DATA + "COCO"
-        train_data = load_dataset(dataset + "/train", 16, True, metric)
-        validation_data = load_dataset(dataset + "/test", 8, False, metric)
+        with open(PATH_TO_CONFIG + "metric_learning.yaml", "r") as file:
+            config = yaml.safe_load(file)
+        dataset = PATH_TO_DATASET + config["data"]
+        metric = config["metric"]
+        loss = config["loss"]
+        loss_params = config["loss_params"]
+        batch_size = config["batch_size"]
 
-        # Set up network
-        margin = 2.0
+        if loss == "offline":
+            train_data = load_dataset(dataset + "/train", batch_size, True, metric)
+            validation_data = load_dataset(dataset + "/test", 8, False, metric)
+        elif loss == "online":
+            train_data = load_dataset(dataset + "/train", batch_size, True, metric, n_samples=3)
+            validation_data = load_dataset(dataset + "/test", 8, False, metric, n_samples=3)
+        else:
+            raise ValueError("Loss type not supported")
+
         embedding_net = ResNet50()
 
-        model = None
-        criterion = None
-        if metric == "triplet":
-            model = TripletNet(embedding_net).cuda()
-            criterion = TripletsLoss(margin)
-        elif metric == "siamese":
-            model = SiameseNet(embedding_net).cuda()
-            criterion = ContrastiveLoss(margin)
+        if metric == "siamese":
+            if loss == "offline":
+                model = SiameseNet(embedding_net).cuda()
+                criterion = ContrastiveLoss(loss_params["margin"])
+            elif loss == "online":
+                model = embedding_net.cuda()
+                pair_selector = get_pair_selector(loss_params["selector"])
+                criterion = OnlineContrastiveLoss(loss_params["margin"], pair_selector)
+            else:
+                raise ValueError("Loss type not supported")
+        elif metric == "triplet":
+            if loss == "offline":
+                model = TripletNet(embedding_net).cuda()
+                criterion = TripletsLoss(loss_params["margin"])
+            elif loss == "online":
+                model = embedding_net.cuda()
+                triplet_selector = get_triplet_selector(loss_params["selector"], loss_params["margin"])
+                criterion = OnlineTripletLoss(loss_params["margin"], triplet_selector)
+            else:
+                raise ValueError("Loss type not supported")
+        else:
+            raise ValueError("Metric type not supported")
 
         optimizer = optim.Adam(model.parameters(), lr=1e-3)
-        n_epochs = 20
-        log_interval = 20
+        n_epochs = config["n_epochs"]
+        log_interval = config["log_interval"]
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
         # Training
         for epoch in range(n_epochs):
-            train_loss = train_epoch(model,optimizer,train_data,criterion,device,log_interval)
+            train_loss = train_epoch(model, optimizer, train_data, criterion, device, log_interval)
 
-            val_loss = val_epoch(model,optimizer,validation_data,criterion,device,log_interval)
+            val_loss = val_epoch(model, optimizer, validation_data, criterion, device, log_interval)
 
             print(f'Epoch {epoch + 1}/{n_epochs}, Train Loss: {train_loss / len(train_data)} Val Loss: {val_loss / len(validation_data)}')
         # Save the model

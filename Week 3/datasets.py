@@ -1,9 +1,11 @@
 import numpy as np
+import torch
 
 from PIL import Image
 from torch.utils.data import DataLoader
 from torchvision import transforms
 from torchvision.datasets import ImageFolder
+from utils import BalancedBatchSampler
 
 
 class SiameseDataset(ImageFolder):
@@ -137,15 +139,21 @@ class TripletDataset(ImageFolder):
         return triplets
 
 
-def load_dataset(path: str, batch_size: int, shuffle: bool = False, type: str = ""):
+def load_dataset(path: str, batch_size: int, shuffle: bool = False, type: str = "", n_samples: int = 0):
     """Load a dataset from a given path."""
     transform = transforms.Compose([transforms.Resize((256, 256)), transforms.ToTensor()])
 
-    if type == "siamese":
+    if type == "siamese" and n_samples == 0:
         dataset = SiameseDataset(path, transform=transform)
-    elif type == "triplet":
+    elif type == "triplet" and n_samples == 0:
         dataset = TripletDataset(path, transform=transform)
     else:
         dataset = ImageFolder(path, transform=transform)
+
+        if n_samples > 0:
+            # Get targets as tensor
+            t_tensor = torch.tensor(dataset.targets)
+            batch_sampler = BalancedBatchSampler(t_tensor, n_classes=len(dataset.classes), n_samples=n_samples)
+            return DataLoader(dataset, batch_sampler=batch_sampler)
 
     return DataLoader(dataset, batch_size=batch_size, shuffle=shuffle)
