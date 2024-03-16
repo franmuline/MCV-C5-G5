@@ -155,7 +155,7 @@ class TripletCOCODataset(Dataset):
         self.labels_set = [name for _, name, _ in categories]
 
         anns = read_json_data(root[:root.rfind("/") + 1] + "mcv_image_retrieval_annotations.json")
-        self.label_to_indices = [anns["train"] if "train2014" in root else anns["val"]]
+        self.label_to_indices = anns["train"] if "train2014" in root else anns["val"]
         self.img_to_labels = get_image_objects(self.label_to_indices)
 
         self.imgs = []
@@ -164,7 +164,9 @@ class TripletCOCODataset(Dataset):
             for image in images_info:
                 if image["file_name"] == img:
                     id = image["id"]
-                    labels = self.img_to_labels[id]
+                    labels = []
+                    if id in self.img_to_labels:
+                        labels = self.img_to_labels[id]
                     self.imgs.append([root + "/" + img, labels])
                     break
 
