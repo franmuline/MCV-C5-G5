@@ -69,6 +69,15 @@ def join_data(images_info: list, annotations: list):
         data[image_id]["annotations"] = anns
     return data
 
+def get_image_objects(data: dict):
+    image_objects = dict()
+    for key, value in data.items():
+        for image_id in value:
+            if image_id not in image_objects:
+                image_objects[image_id] = []
+            image_objects[image_id].append(key)
+    return image_objects
+
 ####################
 ####################
 ##### EXAMPLE ######

@@ -115,12 +115,19 @@ def main():
         loss_params = config["loss_params"]
         batch_size = config["batch_size"]
 
+        if "COCO" in dataset:
+            train_dataset = dataset + "/train2014"
+            val_dataset = dataset + "/val2014"
+        else:
+            train_dataset = dataset + "/train"
+            val_dataset = dataset + "/test"
+
         if loss == "offline":
-            train_data = load_dataset(dataset + "/train", batch_size, True, metric)
-            validation_data = load_dataset(dataset + "/test", 8, False, metric)
+            train_data = load_dataset(train_dataset, batch_size, True, metric)
+            validation_data = load_dataset(val_dataset, 8, False, metric)
         elif loss == "online":
-            train_data = load_dataset(dataset + "/train", batch_size, True, metric, n_samples=3)
-            validation_data = load_dataset(dataset + "/test", 8, False, metric, n_samples=3)
+            train_data = load_dataset(train_dataset, batch_size, True, metric, n_samples=3)
+            validation_data = load_dataset(val_dataset, 8, False, metric, n_samples=3)
         else:
             raise ValueError("Loss type not supported")
 
