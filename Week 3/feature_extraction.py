@@ -15,7 +15,7 @@ def feature_extraction(tag, dataset, model, output_folder):
     model.eval()
     for inputs, labels_batch in dataset:
         with torch.no_grad():
-            outputs = model(inputs).squeeze().numpy()
+            outputs = model(inputs.cuda()).squeeze().cpu().numpy()
         features = np.append(features, outputs, axis=0) if features.size else outputs
         # Add labels as the last column in the features array
         labels = np.append(labels, labels_batch.numpy())
@@ -45,20 +45,17 @@ def perform_feature_extraction(path_to_data, data, model_path, output_path):
     if model_path == "None":
         model_name = "ResNet50"
         model = ResNet50()
-    elif "siamese" in model_path:
-        model = SiameseNet(ResNet50())
-        # Load weights
-        model.load_state_dict(torch.load('siamese_model.pth'))
-        model = model.embedding_net
-        model_name = "SiameseNet"
-    elif "triplet" in model_path:
-        model = TripletNet(ResNet50())
-        # Load weights
-        model.load_state_dict(torch.load('models/triplet_model.pth'))
-        model = model.embedding_net
-        model_name = "TripletNet"
     else:
-        raise ValueError(f"Model {model_path} not available")
+        try:
+            model = torch.load(model_path)
+            if "online" not in model_path:
+                model = model.embedding_net
+            model.cuda()
+        except FileNotFoundError:
+            print("Model not found. Please check the path to the model.")
+            return
+        # Get model name from the path (e.g. if path is models/online_model.pth, model_name = online_model)
+        model_name = model_path.split("/")[-1].split(".")[0]
 
     f_output_folder = f"{output_path}/{model_name}/{data}/"
     feature_extraction("train", train_data, model, f_output_folder)

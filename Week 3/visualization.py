@@ -63,7 +63,7 @@ def plot_umap_embedding(umap_colors: list,
         ax.set_zlabel('UMAP Component 3')
         ax.legend()  # Add legend with labels
 
-    plt.show()
+    # plt.show()
     plt.savefig(path + '/umap.png')
 
 

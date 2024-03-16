@@ -1,3 +1,5 @@
+import os
+import json
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.metrics import average_precision_score, auc
@@ -49,7 +51,7 @@ def average_precision(binary_results, k=None):
     return n / total_docs
 
 
-def plot_precision_recall_curve(precision, recall):
+def plot_precision_recall_curve(precision, recall, path=None):
     """Plot the precision-recall curve.
     Args:
         precision: numpy array of shape (n_samples)
@@ -67,4 +69,63 @@ def plot_precision_recall_curve(precision, recall):
     plt.xlabel('Recall')
     plt.ylabel('Precision')
     plt.title('Precision-Recall curve')
-    plt.show()
+    # plt.show()
+    if path is not None:
+        plt.savefig(path + '/precision_recall_curve.png')
+    return area
+
+
+def save_results(model_name, method, mean_p_1, mean_p_5, avg_p, auc, file_path):
+    """Save the results to a JSON file so that we are able to plot them later.
+    They are saved one by one, so we have to rewrite the file every time we add a new result.
+    :param model_name: Name of the model
+    :param method: Method used for retrieval
+    :param mean_p_1: Mean precision at 1
+    :param mean_p_5: Mean precision at 5
+    :param avg_p: Mean average precision
+    :param file_path: Path to the JSON file
+    """
+    json_data = {
+        f"{model_name}": {
+            f"{method}": {
+                "mean_p_1": mean_p_1,
+                "mean_p_5": mean_p_5,
+                "mean_avg_p": avg_p,
+                "auc": auc
+            }
+        }
+    }
+    if os.path.exists(file_path):
+        with open(file_path, "r") as file:
+            data = json.load(file)
+            # Check if the model is already in the file
+            if f"{model_name}" in data:
+                # Check if the method is already in the file
+                if f"{method}" in data[f"{model_name}"]:
+                    # If it is, we update the values
+                    data[f"{model_name}"][f"{method}"]["mean_p_1"] = mean_p_1
+                    data[f"{model_name}"][f"{method}"]["mean_p_5"] = mean_p_5
+                    data[f"{model_name}"][f"{method}"]["mean_avg_p"] = avg_p
+                    data[f"{model_name}"][f"{method}"]["auc"] = auc
+                else:
+                    # If it is not, we add the method to the model
+                    data[f"{model_name}"][f"{method}"] = {
+                        "mean_p_1": mean_p_1,
+                        "mean_p_5": mean_p_5,
+                        "mean_avg_p": avg_p,
+                        "auc": auc
+                    }
+            else:
+                # If the model is not in the file, we add it
+                data[f"{model_name}"] = {
+                    f"{method}": {
+                        "mean_p_1": mean_p_1,
+                        "mean_p_5": mean_p_5,
+                        "mean_avg_p": avg_p,
+                        "auc": auc
+                    }
+                }
+    else:
+        data = json_data
+    with open(file_path, "w") as file:
+        json.dump(data, file, indent=4)

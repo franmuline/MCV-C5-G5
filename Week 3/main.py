@@ -11,7 +11,7 @@ from losses import ContrastiveLoss, TripletsLoss, OnlineTripletLoss, OnlineContr
 from utils import get_pair_selector, get_triplet_selector
 import torch.optim as optim
 from train import *
-from metrics import precision_at_k, recall_at_k, average_precision, plot_precision_recall_curve
+from metrics import precision_at_k, recall_at_k, average_precision, plot_precision_recall_curve, save_results
 
 PATH_TO_DATASET = "../"
 PATH_TO_CONFIG = "./config/"
@@ -20,7 +20,7 @@ PATH_TO_ML_CONFIG = "./config/metric_learning/"
 
 def main():
     parser = ap.ArgumentParser(description="C5 - Week 3")
-    parser.add_argument("--action", type=str, default="metric_learning",
+    parser.add_argument("--action", type=str, default="retrieval",
                         help="Action to perform, e.g. 'feature_extraction', 'retrieval', 'evaluation', 'visualization', 'metric_learning'. "
                              "To configure each action, please refer to the corresponding yaml file in the config folder.")
     parser.add_argument("--ml_config", type=str, default="metric_learning_soff1.yaml",
@@ -48,6 +48,7 @@ def main():
         params = config["params"]
         folder = config["path_to_train_features"].split("/")[:-1]
         folder = "/".join(folder)
+        print(f"Performing retrieval with method {method} and parameters {params}")
         indices, labels = retrieval(queries, features, method, params["metric"], params["k"])
         name = f"{folder}/{method}_{params['metric']}" if method == "knn" \
             else f"{folder}/{method}"
@@ -77,20 +78,33 @@ def main():
             config = yaml.safe_load(file)
         features_path = config["path_to_features"]
         retrieved_labels = config["path_to_labels"]
+        results_path = config["path_to_results"]
         gt = np.load(features_path)[:, -1]
         labels = np.load(retrieved_labels)
         binary_results = (labels == gt.reshape(-1, 1)).astype(int)
         precisions = precision_at_k(binary_results)
         recalls = recall_at_k(binary_results)
+        # Get path where the features are stored
+        path = retrieved_labels.split("/")[:-1]
+        model_name = path[-3]
+        retrieval_method = path[-1]
+        path = "/".join(path)
 
-        print(f"Mean precision at 1: {np.mean(precisions[:, 0])}")
-        print(f"Mean precision at 5: {np.mean(precisions[:, 4])}")
+        print("Results for model", model_name, "and retrieval method", retrieval_method)
+
+        mean_p_1 = np.mean(precisions[:, 0])
+        mean_p_5 = np.mean(precisions[:, 4])
+        print(f"Mean precision at 1: {mean_p_1}")
+        print(f"Mean precision at 5: {mean_p_5}")
 
         # Compute the average precision
         avg_p = average_precision(binary_results)
         print(f"Mean average precision: {np.mean(avg_p)}")
 
-        plot_precision_recall_curve(precisions.mean(axis=0), recalls.mean(axis=0))
+        auc = plot_precision_recall_curve(precisions.mean(axis=0), recalls.mean(axis=0), path)
+        print(f"AUC: {auc}")
+        print("\n")
+        save_results(model_name, retrieval_method, mean_p_1, mean_p_5, np.mean(avg_p), auc, results_path)
 
     elif action == "metric_learning":
         with open(PATH_TO_ML_CONFIG + ml_config, "r") as file:
@@ -100,8 +114,6 @@ def main():
         loss = config["loss"]
         loss_params = config["loss_params"]
         batch_size = config["batch_size"]
-
-
 
         if loss == "offline":
             train_data = load_dataset(dataset + "/train", batch_size, True, metric)

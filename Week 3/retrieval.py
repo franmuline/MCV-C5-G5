@@ -31,7 +31,7 @@ def faiss_knn_retrieval(queries, features, k=5):
         indices: numpy array of shape (n_queries, k)
     """
     # Create a flat index
-    index = faiss.IndexFlatL2(features.shape[1])
+    index = faiss.IndexFlatIP(features.shape[1])
     # Add the features to the index
     index.add(np.ascontiguousarray(features, dtype=np.float32))
     # Perform the search
@@ -53,7 +53,7 @@ def retrieval(queries, features, method='knn', metric='cosine', k=None):
     # Last column contains the labels
     new_features = features[:, :-1]
     new_queries = queries[:, :-1]
-    if k is None:
+    if k is None or k == "None":
         k = features.shape[0]
     if method == 'knn':
         indices = knn_retrieval(new_queries, new_features, metric, k)
