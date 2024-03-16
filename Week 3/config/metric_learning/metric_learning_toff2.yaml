@@ -1,0 +1,10 @@
+# File to configure the metric learning model
+data: MIT_split  # Dataset to use
+metric: triplet  # Type of metric learning model (siames or triplet)
+loss: offline  # Loss function to use (offline (Contrastive for Siamese and TripletLoss for Triplets) or online (OnlineContrastive for Siamese and OnlineTriplet for Triplets))
+loss_params:
+  margin: 2.0 # Margin for the contrastive loss
+  # selector: hard # Strategy to select the negative samples
+n_epochs: 20  # Number of epochs
+log_interval: 20  # Log interval
+batch_size: 16  # Batch size

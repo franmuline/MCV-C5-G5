@@ -1,5 +1,6 @@
 import os
 import yaml
+import wandb
 import argparse as ap
 from datasets import load_dataset
 from feature_extraction import perform_feature_extraction
@@ -14,21 +15,20 @@ from metrics import precision_at_k, recall_at_k, average_precision, plot_precisi
 
 PATH_TO_DATASET = "../"
 PATH_TO_CONFIG = "./config/"
+PATH_TO_ML_CONFIG = "./config/metric_learning/"
 
 
 def main():
     parser = ap.ArgumentParser(description="C5 - Week 3")
     parser.add_argument("--action", type=str, default="metric_learning",
-                        help="Action to perform, e.g. 'feature_extraction', 'retrieval', 'evaluation', 'visualization', 'metric_learning'")
-    parser.add_argument("--metric", type=str, default="triplet", help="Metric learning method to use: 'triplet', 'siamese'",
-                        choices=["triplet", "siamese"])
-    parser.add_argument("--dataset", type=str, default="MIT_split", help="Dataset to use, e.g. 'MIT_split' or 'COCO'")
-    parser.add_argument("--output_folder", type=str, default="./output", help="Output folder for the results")
+                        help="Action to perform, e.g. 'feature_extraction', 'retrieval', 'evaluation', 'visualization', 'metric_learning'. "
+                             "To configure each action, please refer to the corresponding yaml file in the config folder.")
+    parser.add_argument("--ml_config", type=str, default="metric_learning_soff1.yaml",
+                        help="Metric learning configuration file to use.")
 
     args = parser.parse_args()
     action = args.action
-    metric = args.metric
-    data = args.dataset
+    ml_config = args.ml_config
 
     if action == "feature_extraction":
         # Read arguments from yaml file
@@ -93,13 +93,15 @@ def main():
         plot_precision_recall_curve(precisions.mean(axis=0), recalls.mean(axis=0))
 
     elif action == "metric_learning":
-        with open(PATH_TO_CONFIG + "metric_learning.yaml", "r") as file:
+        with open(PATH_TO_ML_CONFIG + ml_config, "r") as file:
             config = yaml.safe_load(file)
         dataset = PATH_TO_DATASET + config["data"]
         metric = config["metric"]
         loss = config["loss"]
         loss_params = config["loss_params"]
         batch_size = config["batch_size"]
+
+
 
         if loss == "offline":
             train_data = load_dataset(dataset + "/train", batch_size, True, metric)
@@ -140,6 +142,18 @@ def main():
         log_interval = config["log_interval"]
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+        if loss == "offline":
+            model_full_name = f"{metric}_{loss}_{loss_params['margin']}"
+        elif loss == "online":
+            model_full_name = f"{metric}_{loss}_{loss_params['selector']}_{loss_params['margin']}"
+        else:
+            raise ValueError("Loss type not supported")
+        # Init a project in wandb with the name "week3", with the team "group-09-c3"
+        wandb.init(project="c5_week3", entity="group-09-c3", name=model_full_name)
+
+        print(
+            f"Training {metric} with {loss} loss and parameters {loss_params} on dataset {dataset} with batch size {batch_size}...")
+
         # Training
         for epoch in range(n_epochs):
             train_loss = train_epoch(model, optimizer, train_data, criterion, device, log_interval)
@@ -147,9 +161,11 @@ def main():
             val_loss = val_epoch(model, optimizer, validation_data, criterion, device, log_interval)
 
             print(f'Epoch {epoch + 1}/{n_epochs}, Train Loss: {train_loss / len(train_data)} Val Loss: {val_loss / len(validation_data)}')
-        # Save the model
-        torch.save(model.state_dict(), metric+'_model.pth')
+            # Log the train and validation loss in wandb
+            wandb.log({"train_loss": train_loss / len(train_data), "val_loss": val_loss / len(validation_data)})
 
+        # Save the model
+        torch.save(model, "./models/" + model_full_name + ".pth")
         print('Finished Training')
 
 
