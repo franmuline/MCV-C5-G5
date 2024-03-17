@@ -1,4 +1,4 @@
 # File to indicate path of the feature extraction model
-path_to_model: models/triplet_model.pth
-data: MIT_split
+path_to_model: None
+data: COCO
 output_path: ./output # Path to save the features and labels

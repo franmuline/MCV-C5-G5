@@ -2,7 +2,7 @@ import os
 import torch
 import numpy as np
 from datasets import load_dataset
-from models import ResNet50, SiameseNet, TripletNet
+from models import ResNet50, SiameseNet, TripletNet, FasterRCNN
 
 
 def feature_extraction(tag, dataset, model, output_folder):
@@ -15,10 +15,10 @@ def feature_extraction(tag, dataset, model, output_folder):
     model.eval()
     for inputs, labels_batch in dataset:
         with torch.no_grad():
-            outputs = model(inputs.cuda()).squeeze().cpu().numpy()
+            outputs = model(inputs.cuda()).cpu().numpy()
         features = np.append(features, outputs, axis=0) if features.size else outputs
         # Add labels as the last column in the features array
-        labels = np.append(labels, labels_batch.numpy())
+        labels = np.append(labels, labels_batch)
     # Add the labels as the last column in the features array
     labels = labels.reshape(-1, 1)
     features = np.append(features, labels, axis=1)
@@ -38,13 +38,18 @@ def perform_feature_extraction(path_to_data, data, model_path, output_path):
     :return:
     """
     dataset = path_to_data + data
-    train_data = load_dataset(dataset + "/train", 32, False)
-    validation_data = load_dataset(dataset + "/test", 32, False)
+
+    if "COCO" in dataset:
+        train_data = load_dataset(dataset + "/train2014", 32, False)
+        validation_data = load_dataset(dataset + "/val2014", 32, False)
+    else:
+        train_data = load_dataset(dataset + "/train", 32, False)
+        validation_data = load_dataset(dataset + "/test", 32, False)
 
     # Load the model
     if model_path == "None":
         model_name = "ResNet50"
-        model = ResNet50()
+        model = FasterRCNN().cuda()
     else:
         try:
             model = torch.load(model_path)
