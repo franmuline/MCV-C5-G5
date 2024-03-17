@@ -5,22 +5,24 @@ from datasets import load_dataset
 from models import ResNet50, SiameseNet, TripletNet, FasterRCNN
 
 
-def feature_extraction(tag, dataset, model, output_folder):
+def feature_extraction(tag, dataset, model, output_folder, coco=False):
     """Extract features from a set of images using a pre-trained model.
     Features and labels will be stored in a .npy file in the format: [features, labels].
     For each image in the dataset, we have a row of features (e.g. 2048 for ResNet50) and a label.
     """
     features = np.array([])
     labels = np.array([])
-    model.eval()
     for inputs, labels_batch in dataset:
         with torch.no_grad():
-            outputs = model(inputs.cuda()).cpu().numpy()
+            outputs = model(inputs.cuda()).squeeze().cpu().numpy()
         features = np.append(features, outputs, axis=0) if features.size else outputs
+        # If labels is a tensor, convert it to a numpy array
+        labels_batch = labels_batch.numpy() if isinstance(labels_batch, torch.Tensor) else labels_batch
         # Add labels as the last column in the features array
-        labels = np.append(labels, labels_batch)
-    # Add the labels as the last column in the features array
-    labels = labels.reshape(-1, 1)
+        labels = np.append(labels, labels_batch, axis=0) if labels.size else labels_batch
+    # If each image has only one label, we need to reshape the array to be a column vector
+    if len(labels.shape) == 1:
+        labels = labels.reshape(-1, 1)
     features = np.append(features, labels, axis=1)
     # Check if output folder exists
     if not os.path.exists(output_folder):
@@ -63,5 +65,9 @@ def perform_feature_extraction(path_to_data, data, model_path, output_path):
         model_name = model_path.split("/")[-1].split(".")[0]
 
     f_output_folder = f"{output_path}/{model_name}/{data}/"
-    feature_extraction("train", train_data, model, f_output_folder)
-    feature_extraction("validation", validation_data, model, f_output_folder)
+    if "COCO" in dataset:
+        feature_extraction("train", train_data, model, f_output_folder, coco=True)
+        feature_extraction("validation", validation_data, model, f_output_folder, coco=True)
+    else:
+        feature_extraction("train", train_data, model, f_output_folder)
+        feature_extraction("validation", validation_data, model, f_output_folder)

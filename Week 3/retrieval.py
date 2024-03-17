@@ -39,7 +39,7 @@ def faiss_knn_retrieval(queries, features, k=5):
     return indices
 
 
-def retrieval(queries, features, method='knn', metric='cosine', k=None):
+def retrieval(queries, features, method='knn', metric='cosine', dim=256, k=None, coco=False):
     """Perform k-nearest neighbor retrieval using a specific method and metric.
     Args:
         queries: numpy array of shape (n_queries, n_features)
@@ -50,9 +50,9 @@ def retrieval(queries, features, method='knn', metric='cosine', k=None):
     Returns:
         indices: numpy array of shape (n_queries, k)
     """
-    # Last column contains the labels
-    new_features = features[:, :-1]
-    new_queries = queries[:, :-1]
+    # The feature vectors are of dimension dim, the rest of the columns are for the labels
+    new_queries = queries[:, :dim]
+    new_features = features[:, :dim]
     if k is None or k == "None":
         k = features.shape[0]
     if method == 'knn':
@@ -63,7 +63,14 @@ def retrieval(queries, features, method='knn', metric='cosine', k=None):
         raise ValueError(f"Method {method} not available")
 
     # Create a new array with the labels that correspond to the retrieved indices
-    labels = np.zeros((indices.shape[0], k))
-    for i in range(indices.shape[0]):
-        labels[i, :] = features[indices[i], -1]
+    if not coco:
+        labels = np.zeros((indices.shape[0], k))
+        for i in range(indices.shape[0]):
+            labels[i, :] = features[indices[i], -1]
+    else:
+        # Each label is a 90-dimensional vector
+        labels = np.zeros((indices.shape[0], k, 90))
+        for i in range(indices.shape[0]):
+            labels[i, :, :] = features[indices[i], -90:]
+
     return indices, labels
