@@ -141,37 +141,60 @@ class TripletDataset(ImageFolder):
 
         return triplets
 
-
-class TripletCOCODataset(Dataset):
-    def __init__(self, root, transform=None):
+class COCODataset(Dataset):
+    def __init__(self, root, transform=None, train=False):
         self.root = root
         self.transform = transform
 
-        if "train2014" in root:
-            instances = read_json_data(root[:root.rfind("/") + 1] + "instances_train2014.json")
-        elif "val2014" in root:
-            instances = read_json_data(root[:root.rfind("/") + 1] + "instances_val2014.json")
-
-        categories = instances["categories"]
-        self.labels_set = [category["id"] for category in categories]
-
         anns = read_json_data(root[:root.rfind("/") + 1] + "mcv_image_retrieval_annotations.json")
-        self.img_to_labels = get_image_objects(anns["train"] if "train2014" in root else anns["val"])
 
-        self.targets = [[] for _ in range(len(os.listdir(root)))]
+        dir = root[root.rfind("/") + 1:]
+
+        valid_anns = {}
+        if "train2014" == dir:
+            if not train:
+                valid_anns = anns.get("database", {})
+            else:
+                valid_anns = anns.get("train", {})
+
+        elif "val2014" == dir:
+            valid_anns = anns.get("val", {})
+            valid_anns.update({key: valid_anns.get(key, []) + anns["test"][key] for key in anns.get("test", {})})
+
+        self.img_to_labels = get_image_objects(valid_anns)
+
+        self.targets = [[] for _ in range(len(self.img_to_labels.keys()))]
         self.imgs = []
 
         img_to_index = {}
-        for i, img in enumerate(os.listdir(root)):
-            img_to_index[img] = i
+        for i, img in enumerate(self.img_to_labels.keys()):
+            filename = f'COCO_{dir}_{id:012}.jpg'
+            img_to_index[filename] = i
 
-        for image in instances["images"]:
-            img_file_name = image["file_name"]
-            if img_file_name in img_to_index:
-                id = image["id"]
-                labels = self.img_to_labels.get(id, [])
-                self.targets[img_to_index[img_file_name]] = labels
-                self.imgs.append([root + "/" + img_file_name, labels])
+        for filename in img_to_index.keys():
+            labels = self.img_to_labels.get(id, [-1])
+            self.targets[img_to_index[filename]] = labels
+            self.imgs.append([root + "/" + filename, labels])
+
+        self.labels_set = valid_anns.keys()
+
+    def __getitem__(self, index):
+        print(index)
+        img, target = self.imgs[index]
+        img = Image.open(img)
+        if self.transform is not None:
+            img = self.transform(img)
+
+        if img.shape[0] != 3:
+            img = img.repeat(3, 1, 1)
+        return img, np.random.choice(target)
+
+    def __len__(self):
+        return len(self.imgs)
+
+class TripletCOCODataset(COCODataset):
+    def __init__(self, root, transform=None):
+        super().__init__(root, transform, True)
 
         self.label_to_indices = defaultdict(list)
         for i, x in enumerate(self.targets):
@@ -222,9 +245,6 @@ class TripletCOCODataset(Dataset):
         for i in range(len(self.imgs)):
             img1, labels1 = self.imgs[i]
 
-            if len(labels1) == 0:
-                continue
-
             img2 = img1
             while img2 == img1:
                 positive_label = np.random.choice(labels1)
@@ -244,7 +264,10 @@ def load_dataset(path: str, batch_size: int, shuffle: bool = False, type: str = 
     if type == "siamese" and n_samples == 0:
         dataset = SiameseDataset(path, transform=transform)
     elif "COCO" in path:
-        dataset = TripletCOCODataset(path, transform=transform)
+        if type == "triplet" and n_samples == 0:
+            dataset = TripletCOCODataset(path, transform=transform)
+        else:
+            dataset = COCODataset(path, transform=transform)
     elif type == "triplet" and n_samples == 0:
         dataset = TripletDataset(path, transform=transform)
     else:
