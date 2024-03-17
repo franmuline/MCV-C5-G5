@@ -167,7 +167,7 @@ class COCODataset(Dataset):
         self.imgs = []
 
         img_to_index = {}
-        for i, img in enumerate(self.img_to_labels.keys()):
+        for i, id in enumerate(self.img_to_labels.keys()):
             filename = f'COCO_{dir}_{id:012}.jpg'
             img_to_index[filename] = i
 
@@ -179,7 +179,6 @@ class COCODataset(Dataset):
         self.labels_set = valid_anns.keys()
 
     def __getitem__(self, index):
-        print(index)
         img, target = self.imgs[index]
         img = Image.open(img)
         if self.transform is not None:
