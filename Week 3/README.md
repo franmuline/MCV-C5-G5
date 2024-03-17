@@ -1,4 +1,4 @@
-# T2: Object Detection, recognition and segmentation - Usage
+# T3: Image Retrieval
 
 ### Setup
 
@@ -7,7 +7,6 @@ You can configure your `conda` environment from scratch by doing
 conda create --name c5_w3 python=3.10
 conda activate c5_w3
 conda install pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia
-python -m pip install 'git+https://github.com/facebookresearch/detectron2.git'
 ￼
 conda install scikit-learn umap-learn faiss-gpu matplotlib
 pip install opencv-python
@@ -16,32 +15,50 @@ pip install opencv-python
 ### Code Instructions
 
 ```bash
-python main.py --action <action> --model <model>
+python main.py --action <action> [--ml_config <ml_cfg>]
 ```
 
 where:
 ```
-<action> = ["simple_inference", "eval_inference", "random_search", "out_of_context"]
-<model> = ["faster_rcnn", "mask_rcnn"]
+<action> = ["feature_extraction", "retrieval", "evaluation", "visualization", "metric_learning"]
+<ml_cfg> = Any of the files in "config/metric_learning". Only for <action> = metric_learning.
 ```
 
-For both `simple_inference` and `eval_inference` actions, **the user can specify
-a path to the desired model weights in the file `Week 2/config_files/weights.yaml`**.
-If it is not specified, the pre-trained weights provided by detectron2 will be used.
+#### Actions
 
-Simple inference: will run the selected model on the sequences of images of the KITTI-MOTS dataset provided in the `Week 2/config_files/chosen_sequences.yaml`. 
-The sequences have to refer, by index, to the sequences of the validation set (indicated in `Week 2/config_files/dataset_config.yaml`).
-Then, the results will be saved in the `Week 2/simple_inference/` folder, in a folder with the name of the model. 
+`feature_extraction`: Perform the feature extraction of the images with the configuration defined in the `config/feature_extraction.yaml` file. The features will be stored in the directory defined in the yaml file.
+- `model_path`: path of the model to use.
+- `data`: name of the dataset located in the root of the workspace.
+- `output_path`: output directory.
 
-Eval inference: will run the selected model on the validation set of the KITTI-MOTS dataset. 
-The results of the evaluation will be saved in the `Week 2/output/` folder, in a folder with the name of the model, in a file called output.txt.
+`retrieval`: Perform the image retrieval with the configuration defined in the `config/retrieval.yaml`. 
+- `path_to_train_features` and `path_to_val_features`: path of the extracted features
+- `method`: method employed to retrieve the most similar images from the database.
+- `params`: 
+    - `k`: number of nearest neighbors to retrieve.
+    - `metric`: similarity / distance method to use.
 
-Random search: will run a random search to fine-tune the model changing the hyperparameters. 
-It is conducted using wandb, and the hyperparameters are defined inside the function `random_search` in the file `Week 2/train.py`.
+`evaluation`: Evaluate the performance of the retrieved labels compared with the ground truth.
+The configuration is set in the `config/evaluation.yaml` file.
+- `path_to_features`: Path to the ground truth.
+- `path_to_labels`: Path to the retrieved labels.
 
-Out of context: will run Mask RCNN on the Out of context model (it has to be in the same directory as the whole project).
+`visualization`: Visualize the feature vectors in 2D or 3D. The configuration is set in the `config/visualization.yaml` file.
+- `type`: type of visualization. [`UMAP`]
+- `path_to_features`: path to the features to visualize.
+- `params`:
+    - `n_components`:  number of dimensions to reduce to (2 or 3 for visualization).
+    - `min_dist`:  minimum distance between points.
+    - `n_neighbors`: number of nearest neighbours.
+    - `metric`: distance to calculate the neigbours.
 
-
-
-
-
+`metric_learning`: Perform the metric learning training with the configuration defined by `<ml_cfg>` (any of the files in `config/metric_learning`).
+- `data`: dataset to use.
+- `metric`: type of metric learning model (siames or triplet).
+- `loss`: loss function to use (offline (Contrastive for Siamese and TripletLoss for Triplets) or online (OnlineContrastive for Siamese and OnlineTriplet for Triplets)).
+- `loss_params`:
+    - `margin`: margin for the contrastive loss.
+    - `selector`: strategy to select the negative samples.
+- `n_epochs`: number of epochs.
+- `log_interval`: log interval.
+- `batch_size`: batch size.
