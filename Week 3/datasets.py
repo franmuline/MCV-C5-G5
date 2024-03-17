@@ -3,6 +3,7 @@ import numpy as np
 import torch
 
 from coco_utils import get_image_objects, read_json_data
+from collections import defaultdict
 from PIL import Image
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
@@ -157,42 +158,31 @@ class TripletCOCODataset(Dataset):
         anns = read_json_data(root[:root.rfind("/") + 1] + "mcv_image_retrieval_annotations.json")
         self.img_to_labels = get_image_objects(anns["train"] if "train2014" in root else anns["val"])
 
-        self.targets = []
-        for img in os.listdir(root):
-            for image in instances["images"]:
-                if image["file_name"] == img:
-                    id = image["id"]
-                    labels = []
-                    if id in self.img_to_labels:
-                        labels = self.img_to_labels[id]
-                    self.targets.append(labels)
-                    break
-                    
-
-        self.label_to_indices = {}
-        for label in self.labels_set:
-            self.label_to_indices[label] = []
-            for i, x in enumerate(self.targets):
-                if label in x:
-                    self.label_to_indices[label].append(i)
-
+        self.targets = [[] for _ in range(len(os.listdir(root)))]
         self.imgs = []
-        images_info = instances["images"]
-        for img in os.listdir(root):
-            for image in images_info:
-                if image["file_name"] == img:
-                    id = image["id"]
-                    labels = []
-                    if id in self.img_to_labels:
-                        labels = self.img_to_labels[id]
-                    self.imgs.append([root + "/" + img, labels])
-                    break
+
+        img_to_index = {}
+        for i, img in enumerate(os.listdir(root)):
+            img_to_index[img] = i
+
+        for image in instances["images"]:
+            img_file_name = image["file_name"]
+            if img_file_name in img_to_index:
+                id = image["id"]
+                labels = self.img_to_labels.get(id, [])
+                self.targets[img_to_index[img_file_name]] = labels
+                self.imgs.append([root + "/" + img_file_name, labels])
+
+        self.label_to_indices = defaultdict(list)
+        for i, x in enumerate(self.targets):
+            for label in x:
+                self.label_to_indices[label].append(i)
 
         if "val" in root:
             self.test_triplets = self.get_triplets()
 
     def __getitem__(self, index):
-        if "test" in self.root:
+        if "val" in self.root:
             img1, img2, img3 = self.test_triplets[index]
             img1 = Image.open(img1)
             img2 = Image.open(img2)
@@ -225,7 +215,7 @@ class TripletCOCODataset(Dataset):
             return (img1, img2, img3), []
 
     def __len__(self):
-        return len(self.imgs) if not "test" in self.root else len(self.test_triplets)
+        return len(self.imgs) if not "val" in self.root else len(self.test_triplets)
 
     def get_triplets(self):
         triplets = []
