@@ -186,7 +186,7 @@ class COCODataset(Dataset):
 
         if img.shape[0] != 3:
             img = img.repeat(3, 1, 1)
-        return img, np.random.choice(target)
+        return img, target
 
     def __len__(self):
         return len(self.imgs)
