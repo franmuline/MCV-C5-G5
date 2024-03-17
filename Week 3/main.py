@@ -6,7 +6,7 @@ from datasets import load_dataset
 from feature_extraction import perform_feature_extraction
 from models import ResNet50, SiameseNet, TripletNet
 from retrieval import retrieval
-from visualization import visualize_UMAP
+from visualization import visualize_UMAP, visualize_closest_images
 from losses import ContrastiveLoss, TripletsLoss, OnlineTripletLoss, OnlineContrastiveLoss
 from utils import get_pair_selector, get_triplet_selector
 import torch.optim as optim
@@ -20,7 +20,7 @@ PATH_TO_ML_CONFIG = "./config/metric_learning/"
 
 def main():
     parser = ap.ArgumentParser(description="C5 - Week 3")
-    parser.add_argument("--action", type=str, default="retrieval",
+    parser.add_argument("--action", type=str, default="closest_images",
                         help="Action to perform, e.g. 'feature_extraction', 'retrieval', 'evaluation', 'visualization', 'metric_learning'. "
                              "To configure each action, please refer to the corresponding yaml file in the config folder.")
     parser.add_argument("--ml_config", type=str, default="metric_learning_soff1.yaml",
@@ -57,6 +57,13 @@ def main():
 
         np.save(name + "/retrieved_indices.npy", indices)
         np.save(name + "/retrieved_labels.npy", labels)
+
+    elif action == "closest_images":
+        with open(PATH_TO_CONFIG + "closest_images.yaml", "r") as file:
+            config = yaml.safe_load(file)
+        indices = config["indices_path"]
+        data = config["data"]
+        visualize_closest_images(PATH_TO_DATASET + data, indices)
 
     elif action == "visualization":
         with open(PATH_TO_CONFIG + "visualization.yaml", "r") as file:
