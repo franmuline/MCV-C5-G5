@@ -1,0 +1,3 @@
+# File to configure what indices files to show closest images
+data: COCO  # Dataset to use
+indices_path: output/triplet_offline_0/COCO/knn_cosine/retrieved_indices.npy

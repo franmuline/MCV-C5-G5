@@ -50,7 +50,7 @@ def main():
         folder = "/".join(folder)
         print(f"Performing retrieval with method {method} and parameters {params}")
         if "COCO" in folder:
-            dim = 256
+            dim = 2048
             coco = True
         else:
             dim = 2048

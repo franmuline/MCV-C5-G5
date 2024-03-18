@@ -20,7 +20,7 @@ python main.py --action <action> [--ml_config <ml_cfg>]
 
 where:
 ```
-<action> = ["feature_extraction", "retrieval", "evaluation", "visualization", "metric_learning"]
+<action> = ["feature_extraction", "retrieval", "evaluation", "visualization", "closest_images", "metric_learning"]
 <ml_cfg> = Any of the files in "config/metric_learning". Only for <action> = metric_learning.
 ```
 
@@ -51,6 +51,10 @@ The configuration is set in the `config/evaluation.yaml` file.
     - `min_dist`:  minimum distance between points.
     - `n_neighbors`: number of nearest neighbours.
     - `metric`: distance to calculate the neigbours.
+
+`closest_images`: Visualize what the closest images from the training set are for some of the query images. The configuration is set in the `config/closest_images.yaml` file.
+- `data`: what dataset to use.
+- `indices_path`: path to the retrieved indices. 
 
 `metric_learning`: Perform the metric learning training with the configuration defined by `<ml_cfg>` (any of the files in `config/metric_learning`).
 - `data`: dataset to use.
