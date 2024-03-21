@@ -30,7 +30,7 @@
 
 - T2: Object Detection, recognition and segmentation - [Instructions](Week%202/README.md)
 - T3: Image Retrieval - [Instructions](Week%203/README.md)
-- T4: Cross-modal Retrieval
+- T4: Cross-modal Retrieval - [Instructions](Week%204/README.md)
 - T5: Diffusion models
 - T6: Multimodal human analysis
 
