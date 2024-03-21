@@ -1,12 +1,11 @@
 import argparse as ap
-import json
 import fasttext
 import fasttext.util
 
+from utils import CaptionLoader
 
-
-PATH_TO_DATASET = "/ghome/mcv/datasets/C5/COCO/"
-
+PATH_TO_DATASET = "/ghome/mcv/datasets/C5/COCO/" # MCV server
+# PATH_TO_DATASET = "../COCO/"                     # For local testing
 
 def main():
     parser = ap.ArgumentParser(description="C5 - Week 4")
@@ -16,15 +15,8 @@ def main():
     action = args.action
 
     if action == "extract_text_features":
-        # En este caso para el TRAIN
-        with open(f'{PATH_TO_DATASET}captions_train2014.json', 'r') as f:
-            data = json.load(f)
-            annotations = data['annotations']
-
-        img_capture_pairs = []  # stores imageName and caption for each image in COCOtrain
-        for sample in annotations:
-            img_name = 'COCO_train2014_%012d.jpg' % sample['image_id']
-            img_capture_pairs.append([img_name, sample['caption']])
+        train_loader = CaptionLoader("../COCO/captions_train2014.json")
+        val_loader = CaptionLoader("../COCO/captions_val2014.json")
 
         # Load pre-trained FastText model
         print("Loading fastText model...")
