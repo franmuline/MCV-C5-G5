@@ -9,7 +9,7 @@ conda activate c5_w3
 conda install pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia
 
 conda install scikit-learn umap-learn faiss-gpu matplotlib
-pip install opencv-python
+pip install opencv-python fasttext
 ```
 
 ### Code Instructions
