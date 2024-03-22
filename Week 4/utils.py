@@ -2,7 +2,7 @@ import json
 
 from collections import defaultdict
 
-SYMBOLS =  [".", ",", "!", "?", "'s", "'ll", "'re", "'m", "'ve", "'d"
+SYMBOLS = [".", ",", "!", "?", "'s", "'ll", "'re", "'m", "'ve", "'d",
             "(", ")", "[", "]", "{", "}", "<", ">", ":", ";", "-", "_",
             "=", "+", "*", "/", "\\", "|", "@", "#", "$", "%", "^", "&",
             "\"", "'", "—", "–"]
@@ -13,6 +13,7 @@ def read_json_data(json_path: str):
     with open(json_path, "r") as file:
         data = json.load(file)
     return data
+
 
 class CaptionLoader:
     def __init__(self, json_path):
@@ -43,6 +44,7 @@ class CaptionLoader:
         """
         return self.image_captions[image_id]   
 
+
 def captions_to_word_vectors(captions: list, model):
     """
     Convert a list of captions into a list of word vectors.
@@ -54,6 +56,7 @@ def captions_to_word_vectors(captions: list, model):
         for word in words:
             if word not in model.words:
                 # TODO: Handle unknown words -- Replace with Unknown Token
+                caption_embedding.append('<UNK>') # FastText utilizes subwords to handle out-of-vocabulary words
                 # print(f"Processing caption: {caption}")   # Debugging
                 print(f"ERROR -- Word '{word}' not found in the model")   # Debugging
             else:
