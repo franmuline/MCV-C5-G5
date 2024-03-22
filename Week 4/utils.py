@@ -2,6 +2,12 @@ import json
 
 from collections import defaultdict
 
+SYMBOLS =  [".", ",", "!", "?", "'s", "'ll", "'re", "'m", "'ve", "'d"
+            "(", ")", "[", "]", "{", "}", "<", ">", ":", ";", "-", "_",
+            "=", "+", "*", "/", "\\", "|", "@", "#", "$", "%", "^", "&",
+            "\"", "'", "—", "–"]
+
+
 def read_json_data(json_path: str):
     """Get json data from a given path."""
     with open(json_path, "r") as file:
@@ -20,7 +26,10 @@ class CaptionLoader:
 
         for ann in data["annotations"]:
             image_id = ann["image_id"]
-            self.image_captions[image_id].append(ann["caption"])
+            caption = ann["caption"]
+            for symbol in SYMBOLS:
+                caption = caption.replace(symbol, " ")
+            self.image_captions[image_id].append(caption)
 
     def get_image_filename(self, image_id: int):
         """
@@ -33,3 +42,21 @@ class CaptionLoader:
         Get annotations of a given image.
         """
         return self.image_captions[image_id]   
+
+def captions_to_word_vectors(captions: list, model):
+    """
+    Convert a list of captions into a list of word vectors.
+    """
+    captions_vector = []
+    for caption in captions:
+        words = caption.lower().split()
+        caption_embedding = []
+        for word in words:
+            if word not in model.words:
+                # TODO: Handle unknown words -- Replace with Unknown Token
+                # print(f"Processing caption: {caption}")   # Debugging
+                print(f"ERROR -- Word '{word}' not found in the model")   # Debugging
+            else:
+                caption_embedding.append(model.get_word_vector(word))
+        captions_vector.append(caption_embedding)
+    return captions_vector
