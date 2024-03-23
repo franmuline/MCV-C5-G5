@@ -9,3 +9,4 @@ __pycache__
 *KITTI-MOTS
 Week 2/simple_inference/
 *COCO*
+*.bin
