@@ -1,4 +1,5 @@
 import json
+import random
 
 from collections import defaultdict
 
@@ -38,11 +39,26 @@ class CaptionLoader:
         """
         return self.image_filename[image_id]
     
-    def get_image_annotations(self, image_id: int):
+    def get_image_captions(self, image_id: int):
         """
-        Get annotations of a given image.
+        Get captions of a given image.
         """
-        return self.image_captions[image_id]   
+        return self.image_captions[image_id]
+
+    def get_positive_caption(self, image_id: int):
+        """
+        Get a positive caption for a given image.
+        """
+        return random.choice(self.image_captions[image_id])
+
+    def get_negative_caption(self, image_id: int):
+        """
+        Get a negative caption for a given image.
+        """
+        image_ids = self.image_captions.keys()
+        image_ids.remove(image_id)
+        negative_image_id = random.choice(image_ids)
+        return random.choice(self.image_captions[negative_image_id])
 
 
 def captions_to_word_vectors(captions: list, model):
@@ -55,10 +71,8 @@ def captions_to_word_vectors(captions: list, model):
         caption_embedding = []
         for word in words:
             if word not in model.words:
-                # TODO: Handle unknown words -- Replace with Unknown Token
-                caption_embedding.append('<UNK>') # FastText utilizes subwords to handle out-of-vocabulary words
-                # print(f"Processing caption: {caption}")   # Debugging
-                print(f"ERROR -- Word '{word}' not found in the model")   # Debugging
+                # FastText uses subwords to handle out-of-vocabulary words
+                caption_embedding.append('<UNK>')
             else:
                 caption_embedding.append(model.get_word_vector(word))
         captions_vector.append(caption_embedding)
