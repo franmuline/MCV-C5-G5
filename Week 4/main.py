@@ -1,6 +1,5 @@
 import argparse as ap
-import fasttext
-import fasttext.util
+from source import FastText, Bert
 
 from collections import defaultdict
 from utils import CaptionLoader, captions_to_word_vectors
@@ -25,12 +24,13 @@ def main():
 
         # Load pre-trained FastText model
         print("Loading fastText model...")
-        model = fasttext.load_model(PATH_TO_FASTTEXT_MODEL)
+        model = FastText(PATH_TO_FASTTEXT_MODEL, embed_size=2048)
 
-        model = fasttext.util.reduce_model(model, 100)  # Reducing vectors to dimension 100 (can be changed)
+
+        # model = fasttext.util.reduce_model(model, 100)  # Reducing vectors to dimension 100 (can be changed)
 
         # Trying with one word
-        word_vector_dimension = model.get_word_vector("hello").shape
+        word_vector_dimension = model("hello")
         print(word_vector_dimension)
 
         # Converting each caption into a word vector
