@@ -39,6 +39,9 @@ class FastText(nn.Module):
     def words(self):
         return self.model.words
 
+    def get_word_vector(self, word):
+        return self.model.get_word_vector(word)
+
 
 class Bert(nn.Module):
     def __init__(self, model_name, embed_size):
