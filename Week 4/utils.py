@@ -70,7 +70,7 @@ def captions_to_word_vectors(captions: list, model):
         words = caption.lower().split()
         caption_embedding = []
         for word in words:
-            if word not in model.words:
+            if word not in model.words():
                 # FastText uses subwords to handle out-of-vocabulary words
                 caption_embedding.append('<UNK>')
             else:

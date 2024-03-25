@@ -36,6 +36,9 @@ class FastText(nn.Module):
         x = self.encoder(x)
         return x
 
+    def words(self):
+        return self.model.words
+
 
 class Bert(nn.Module):
     def __init__(self, model_name, embed_size):
@@ -49,3 +52,6 @@ class Bert(nn.Module):
         x = self.model(**x).last_hidden_state.mean(dim=1)
         x = self.encoder(x)
         return x
+
+    def words(self):
+        return self.tokenizer.get_vocab().keys()
