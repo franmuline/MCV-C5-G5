@@ -1,15 +1,21 @@
 import argparse as ap
 from source import FastText, Bert
 
+from torch.utils.data import DataLoader
+from torchvision import transforms
+
 from collections import defaultdict
 from utils import CaptionLoader, captions_to_word_vectors
 
 
-PATH_TO_DATASET = "/ghome/mcv/datasets/C5/COCO/" # MCV server
+PATH_TO_DATASET = "/ghome/mcv/datasets/C5/COCO/"  # MCV server
 # PATH_TO_DATASET = "../COCO/"                     # For local testing
 
-PATH_TO_FASTTEXT_MODEL = "/ghome/mcv/C5/fasttext_wiki.en.bin" # MCV server
+
+
+PATH_TO_FASTTEXT_MODEL = "/ghome/mcv/C5/fasttext_wiki.en.bin"  # MCV server
 # PATH_TO_FASTTEXT_MODEL = "fasttext_wiki.en.bin"               # For local testing
+
 
 def main():
     parser = ap.ArgumentParser(description="C5 - Week 4")
@@ -19,14 +25,16 @@ def main():
     action = args.action
 
     if action == "extract_text_features":
-        train_loader = CaptionLoader(PATH_TO_DATASET + "captions_train2014.json")
+        transform = transforms.Compose([transforms.Resize((256, 256)), transforms.ToTensor()])
+        train_loader = CaptionLoader(PATH_TO_DATASET + "captions_train2014.json", transform=transform)
+        train_dataloader = DataLoader(train_loader, batch_size=32, shuffle=False)
+
         val_loader = CaptionLoader(PATH_TO_DATASET + "captions_val2014.json")
+        val_dataloader = DataLoader(val_loader,batch_size=32, shuffle=False)
 
         # Load pre-trained FastText model
         print("Loading fastText model...")
         model = FastText(PATH_TO_FASTTEXT_MODEL, embed_size=2048)
-
-
         # model = fasttext.util.reduce_model(model, 100)  # Reducing vectors to dimension 100 (can be changed)
 
         # Trying with one word
