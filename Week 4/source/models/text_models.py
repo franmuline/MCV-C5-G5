@@ -4,6 +4,7 @@ import numpy as np
 import fasttext
 import fasttext.util
 from transformers import BertModel, BertTokenizer
+from concurrent.futures import ThreadPoolExecutor
 
 
 class TextEncoder(nn.Module):
@@ -26,15 +27,37 @@ class TextEncoder(nn.Module):
 
 
 class FastText(nn.Module):
-    def __init__(self, model_path, embed_size):
+    def __init__(self, model_path, embed_size, aggregation="mean"):
         super(FastText, self).__init__()
         self.model = fasttext.load_model(model_path)
         self.encoder = TextEncoder(300, embed_size)
+        self.aggregation = aggregation
+
+    def process_captions(self, captions):
+        if self.aggregation == "mean":
+            caption_embedding = []
+            for caption in captions:
+                words = caption.lower()
+                caption_embedding.append(self.model.get_sentence_vector(words))
+            caption_embedding = np.mean(caption_embedding, axis=0)
+            return caption_embedding
+        elif self.aggregation == "concat":
+            concat_caption = ""
+            for caption in captions:
+                concat_caption += caption.lower() + " "
+            return self.model.get_sentence_vector(concat_caption)
+        else:
+            raise ValueError("Aggregation method not supported")
 
     def forward(self, x):
-        x = self.model.get_word_vector(x)
-        x = self.encoder(x)
-        return x
+        # X is a list of lists of captions (one list of captions per image). Each caption is a string of words.
+        # We need to convert each caption into a single vector.
+        # We will use the FastText model to get the sentence embeddings for each caption.
+        with ThreadPoolExecutor() as executor:
+            embeddings = list(executor.map(self.process_captions, x))
+        embeddings = np.array(embeddings)
+        embeddings = self.encoder(embeddings)
+        return embeddings
 
     def words(self):
         return self.model.words

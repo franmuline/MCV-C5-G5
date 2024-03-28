@@ -1,1 +1,2 @@
-from .models import ResNet50, FastText, Bert
+from .models import ResNet50, FastText, Bert, ImgTextCrossModel
+from .datasets import ImgCaptionsDataset

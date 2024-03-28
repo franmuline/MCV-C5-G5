@@ -1,0 +1,9 @@
+# Configuration file to do metric learning using fasttext embeddings
+text_model:
+  model_name: fasttext
+  model_path: fasttext_wiki.en.bin
+  embedding_size: 2048
+  strategy: mean
+
+img_model: ResNet50
+data_dir: ../COCO/
